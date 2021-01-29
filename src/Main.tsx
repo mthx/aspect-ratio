@@ -176,7 +176,7 @@ const Main = () => {
             ratio={parseInt(width, 10) / parseInt(height, 10)}
             marginBottom={4}
           >
-            <Box bg="lightgrey" justifyContent="center" alignItems="center">
+            <Box bg="grey" justifyContent="center" alignItems="center">
               <AspectInfo
                 width={parseInt(width, 10)}
                 height={parseInt(height, 10)}
