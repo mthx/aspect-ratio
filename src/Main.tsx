@@ -30,45 +30,42 @@ const Main = () => {
   const imgRef = useRef<HTMLImageElement | null>(null);
   const toast = useToast();
 
-  const handlePaste = useCallback(
-    (event) => {
-      if ((event as any).clipboardData) {
-        const items: DataTransferItem[] = Array.from(
-          (event as any).clipboardData.items
-        );
-        const file = items.filter(
-          (x: DataTransferItem) => x.kind === "file"
-        )[0];
-        const text = items.filter(
-          (x: DataTransferItem) => x.kind === "string"
-        )[0];
-        if (file) {
-          event.preventDefault();
-          const blob = file.getAsFile();
-          const dataUrl = URL.createObjectURL(blob);
-          setImageUrl(dataUrl);
-        } else if (text && event.target.nodeName !== "INPUT") {
-          event.preventDefault();
-          text.getAsString(setImageUrl);
-        }
+  const handleDataTransfer = useCallback(
+    (event, dataTransferItemList: DataTransferItemList) => {
+      const items: DataTransferItem[] = Array.from(dataTransferItemList);
+      console.log(items.map((i) => [i.type, i.kind]));
+      const file = items.filter((x) => x.kind === "file")[0];
+      const uri = items.find((x) => x.type === "text/uri-list");
+      if (file) {
+        event.preventDefault();
+        const blob = file.getAsFile();
+        const dataUrl = URL.createObjectURL(blob);
+        setImageUrl(dataUrl);
+        return true;
       }
+      if (uri) {
+        event.preventDefault();
+        uri.getAsString(setImageUrl);
+        return true;
+      }
+      return false;
     },
     [setImageUrl]
   );
 
+  const handlePaste = useCallback(
+    (event: React.ClipboardEvent<HTMLDivElement>) => {
+      const items: DataTransferItemList = event.clipboardData.items;
+      handleDataTransfer(event, items);
+    },
+    [handleDataTransfer]
+  );
+
   const handleDrop = useCallback(
-    (event: DragEvent) => {
-      const items: DataTransferItem[] = Array.from(event.dataTransfer!.items);
-      const text = items.find((x: DataTransferItem) => x.kind === "string");
-      const uri = items.find(
-        (x: DataTransferItem) => x.type === "text/uri-list"
-      );
-      const value = uri || text;
+    (event: React.DragEvent<HTMLDivElement>) => {
       // Always preventDefault to avoid opening opening tabs if we don't match.
       event.preventDefault();
-      if (value) {
-        value.getAsString(setImageUrl);
-      } else {
+      if (!handleDataTransfer(event, event.dataTransfer.items)) {
         toast({
           title: "Unrecognised item dropped on page",
           description:
@@ -78,12 +75,12 @@ const Main = () => {
         });
       }
     },
-    [toast, setImageUrl]
+    [toast, handleDataTransfer]
   );
 
-  const handleDragOver = useCallback((event: DragEvent) => {
+  const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
-    event.dataTransfer!.dropEffect = "copy";
+    event.dataTransfer.dropEffect = "copy";
   }, []);
 
   const handleImageLoad = useCallback(() => {
@@ -94,33 +91,34 @@ const Main = () => {
   }, [imgRef]);
 
   const handleImageError = useCallback(() => {
+    console.log(imageUrl);
     setImageUrl(undefined);
     toast({
       title: "Error loading image",
-      description:
-        "Failed to load image from the clipboard content. Check you pasted an image or a URL to an image.",
+      description: (
+        <>
+          <p>Failed to load image from the clipboard content.</p>
+          <p>
+            Check you pasted an image or a URL to an image. Try copy/paste from
+            a browser tab if the image is in an anchor, as drag and drop will
+            give the href instead.
+          </p>
+        </>
+      ),
       status: "error",
       isClosable: true,
     });
-  }, [toast, setImageUrl]);
-
-  useEffect(() => {
-    window.addEventListener("paste", handlePaste);
-    document.body.addEventListener("dragover", handleDragOver);
-    document.body.addEventListener("drop", handleDrop);
-    return () => {
-      window.removeEventListener("paste", handlePaste);
-      document.body.removeEventListener("dragover", handleDragOver);
-      document.body.removeEventListener("drop", handleDrop);
-    };
-  });
+  }, [toast, imageUrl, setImageUrl]);
 
   return (
-    <Box padding={10}>
+    <Box padding={10} onDragOver={handleDragOver} onDrop={handleDrop} onPaste={handlePaste} minHeight="100vh">
       <Container maxWidth="70ch">
         <Stack marginBottom={8} spacing={2}>
           <Flex alignItems="flex-end" marginBottom={2}>
-            <Image display="inline" height="9rem" src={icon} /><Heading paddingLeft={2} paddingBottom={4}>Aspect ratio calculator</Heading>
+            <Image display="inline" height="9rem" src={icon} />
+            <Heading paddingLeft={2} paddingBottom={4}>
+              Aspect ratio calculator
+            </Heading>
           </Flex>
           <Text>Find the closest aspect ratio for an image.</Text>
           <UnorderedList spacing={1} listStylePosition="inside">
