@@ -1,5 +1,4 @@
 import React, { useCallback, useRef, useState } from "react";
-import "./App.css";
 import {
   AspectRatio,
   Box,
@@ -33,7 +32,7 @@ const Main = () => {
   const handleDataTransfer = useCallback(
     (event, dataTransferItemList: DataTransferItemList) => {
       const items: DataTransferItem[] = Array.from(dataTransferItemList);
-      const file = items.filter((x) => x.kind === "file")[0];
+      const file = items.find((x) => x.kind === "file");
       const uri = items.find((x) => x.type === "text/uri-list");
       if (file) {
         event.preventDefault();
@@ -77,10 +76,13 @@ const Main = () => {
     [toast, handleDataTransfer]
   );
 
-  const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = "copy";
-  }, []);
+  const handleDragOver = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "copy";
+    },
+    []
+  );
 
   const handleImageLoad = useCallback(() => {
     if (imgRef.current) {
@@ -106,10 +108,16 @@ const Main = () => {
       status: "error",
       isClosable: true,
     });
-  }, [toast, imageUrl, setImageUrl]);
+  }, [toast, setImageUrl]);
 
   return (
-    <Box padding={10} onDragOver={handleDragOver} onDrop={handleDrop} onPaste={handlePaste} minHeight="100vh">
+    <Box
+      padding={10}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      onPaste={handlePaste}
+      minHeight="100vh"
+    >
       <Container maxWidth="70ch">
         <Stack marginBottom={8} spacing={2}>
           <Flex alignItems="flex-end" marginBottom={2}>
