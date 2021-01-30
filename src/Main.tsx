@@ -122,7 +122,7 @@ const Main = () => {
       <Container maxWidth="xl">
         <Stack marginBottom={8} spacing={2}>
           <Flex alignItems="flex-end" marginBottom={2}>
-            <Image display="inline" height={36} src={icon} />
+            <Image display="inline" width={36} height={36}  src={icon} />
             <Heading paddingLeft={2} paddingBottom={4}>
               Aspect ratio calculator
             </Heading>
