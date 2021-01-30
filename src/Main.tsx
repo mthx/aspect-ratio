@@ -1,5 +1,4 @@
 import React, { useCallback, useRef, useState } from "react";
-import "./App.css";
 import {
   AspectRatio,
   Box,
@@ -19,7 +18,7 @@ import {
   UnorderedList,
   useToast,
 } from "@chakra-ui/react";
-import { closest } from "./ratios";
+import { findClosestCommonAspectRatio } from "./ratios";
 import { findApproximateAspectRatio, Fraction } from "./fraction";
 import icon from "./icon.svg";
 import { DefaultUrlSource, FileUrlSource, useUrlSourceState } from "./urlSource";
@@ -34,7 +33,7 @@ const Main = () => {
   const handleDataTransfer = useCallback(
     (event, dataTransferItemList: DataTransferItemList) => {
       const items: DataTransferItem[] = Array.from(dataTransferItemList);
-      const file = items.filter((x) => x.kind === "file")[0];
+      const file = items.find((x) => x.kind === "file");
       const uri = items.find((x) => x.type === "text/uri-list");
       if (file) {
         event.preventDefault();
@@ -76,10 +75,13 @@ const Main = () => {
     [toast, handleDataTransfer]
   );
 
-  const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = "copy";
-  }, []);
+  const handleDragOver = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "copy";
+    },
+    []
+  );
 
   const handleImageLoad = useCallback(() => {
     if (imgRef.current) {
@@ -108,16 +110,27 @@ const Main = () => {
   }, [toast, setImageUrl]);
 
   return (
-    <Box padding={10} onDragOver={handleDragOver} onDrop={handleDrop} onPaste={handlePaste} minHeight="100vh">
-      <Container maxWidth="70ch">
+    <Box
+      padding={[1, 4, 6, 10]}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      onPaste={handlePaste}
+      minHeight="100vh"
+      color="black"
+    >
+      <Container maxWidth="xl">
         <Stack marginBottom={8} spacing={2}>
           <Flex alignItems="flex-end" marginBottom={2}>
-            <Image display="inline" height="9rem" src={icon} />
+            <Image display="inline" width={36} height={36} src={icon} />
             <Heading paddingLeft={2} paddingBottom={4}>
               Aspect ratio calculator
             </Heading>
           </Flex>
-          <Text>Find the closest aspect ratio for an image.</Text>
+          <Text>
+            Find the aspect ratio from an image. Shows approximate aspect ratios
+            where things aren't quite right and the closest ratio commonly used
+            on the web.
+          </Text>
           <UnorderedList spacing={1} listStylePosition="inside">
             <ListItem>
               Drop an image onto the page. Works great from other apps or
@@ -152,13 +165,10 @@ const Main = () => {
         </Grid>
         <Box marginBottom={4}>
           {imageUrl && (
-            <img
-              style={{
-                display: "block",
-                maxWidth: "100%",
-                marginRight: "auto",
-                marginLeft: "auto",
-              }}
+            <Image
+              display="block"
+              mr="auto"
+              ml="auto"
               alt=""
               src={imageUrl.url}
               ref={imgRef}
@@ -228,9 +238,9 @@ interface AspectInfoProps {
 const AspectInfo = ({ width, height }: AspectInfoProps) => {
   const value = new Fraction(width, height);
   const approx = findApproximateAspectRatio(value);
-  const common = closest(value);
+  const common = findClosestCommonAspectRatio(value);
   return (
-    <Box fontSize={18} color="white" fontWeight="700">
+    <Box fontSize="lg" color="white" fontWeight="bold">
       <AspectInfoItem label="Exactly" value={value} />
       {approx.fraction.compareTo(value) !== 0 && (
         <AspectInfoItem
