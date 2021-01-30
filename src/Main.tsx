@@ -18,7 +18,7 @@ import {
   UnorderedList,
   useToast,
 } from "@chakra-ui/react";
-import { closest } from "./ratios";
+import { findClosestCommonAspectRatio } from "./ratios";
 import { findApproximateAspectRatio, Fraction } from "./fraction";
 import icon from "./icon.svg";
 
@@ -237,7 +237,7 @@ interface AspectInfoProps {
 const AspectInfo = ({ width, height }: AspectInfoProps) => {
   const value = new Fraction(width, height);
   const approx = findApproximateAspectRatio(value);
-  const common = closest(value);
+  const common = findClosestCommonAspectRatio(value);
   return (
     <Box fontSize={18} color="white" fontWeight="700">
       <AspectInfoItem label="Exactly" value={value} />

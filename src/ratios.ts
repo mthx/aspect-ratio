@@ -15,7 +15,7 @@ export const commonRatios = [
   { fraction: new Fraction(3, 1) },
 ];
 
-export const closest = (ratio: Fraction) => {
+export const findClosestCommonAspectRatio = (ratio: Fraction) => {
   let closest: Fraction | undefined = undefined;
   let error = Number.MAX_VALUE;
   for (const r of commonRatios) {
