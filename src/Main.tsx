@@ -96,12 +96,12 @@ const Main = () => {
       title: "Error loading image",
       description: (
         <>
-          <p>Failed to load image from the clipboard content.</p>
-          <p>
+          <Text>Failed to load image from the clipboard content.</Text>
+          <Text>
             Check you pasted an image or a URL to an image. Try copy/paste from
             a browser tab if the image is in an anchor, as drag and drop will
             give the href instead.
-          </p>
+          </Text>
         </>
       ),
       status: "error",
