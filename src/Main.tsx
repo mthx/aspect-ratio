@@ -112,7 +112,7 @@ const Main = () => {
 
   return (
     <Box
-      padding={10}
+      padding={[1, 4, 6, 10]}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
       onPaste={handlePaste}
@@ -122,12 +122,16 @@ const Main = () => {
       <Container maxWidth="xl">
         <Stack marginBottom={8} spacing={2}>
           <Flex alignItems="flex-end" marginBottom={2}>
-            <Image display="inline" width={36} height={36}  src={icon} />
+            <Image display="inline" width={36} height={36} src={icon} />
             <Heading paddingLeft={2} paddingBottom={4}>
               Aspect ratio calculator
             </Heading>
           </Flex>
-          <Text>Find the closest aspect ratio for an image.</Text>
+          <Text>
+            Find the aspect ratio from an image. Shows approximate aspect ratios
+            where things aren't quite right and the closest ratio commonly used
+            on the web.
+          </Text>
           <UnorderedList spacing={1} listStylePosition="inside">
             <ListItem>
               Drop an image onto the page. Works great from other apps or
