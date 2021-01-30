@@ -1,9 +1,10 @@
 import React from "react";
 import { ChakraProvider } from "@chakra-ui/react";
 import Main from "./Main";
+import theme from "./theme";
 
 const App = () => (
-  <ChakraProvider>
+  <ChakraProvider theme={theme}>
     <Main />
   </ChakraProvider>
 );

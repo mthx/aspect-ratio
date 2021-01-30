@@ -117,6 +117,7 @@ const Main = () => {
       onDrop={handleDrop}
       onPaste={handlePaste}
       minHeight="100vh"
+      color="black"
     >
       <Container maxWidth="xl">
         <Stack marginBottom={8} spacing={2}>
