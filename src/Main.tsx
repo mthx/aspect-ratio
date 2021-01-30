@@ -22,11 +22,12 @@ import {
 import { closest } from "./ratios";
 import { findApproximateAspectRatio, Fraction } from "./fraction";
 import icon from "./icon.svg";
+import { DefaultUrlSource, FileUrlSource, useUrlSourceState } from "./urlSource";
 
 const Main = () => {
   const [width, setWidth] = useState("1600");
   const [height, setHeight] = useState("900");
-  const [imageUrl, setImageUrl] = useState<string | undefined>();
+  const [imageUrl, setImageUrl] = useUrlSourceState();
   const imgRef = useRef<HTMLImageElement | null>(null);
   const toast = useToast();
 
@@ -37,14 +38,12 @@ const Main = () => {
       const uri = items.find((x) => x.type === "text/uri-list");
       if (file) {
         event.preventDefault();
-        const blob = file.getAsFile();
-        const dataUrl = URL.createObjectURL(blob);
-        setImageUrl(dataUrl);
+        setImageUrl(new FileUrlSource(file.getAsFile()!));
         return true;
       }
       if (uri) {
         event.preventDefault();
-        uri.getAsString(setImageUrl);
+        uri.getAsString(url => setImageUrl(new DefaultUrlSource(url)));
         return true;
       }
       return false;
@@ -106,7 +105,7 @@ const Main = () => {
       status: "error",
       isClosable: true,
     });
-  }, [toast, imageUrl, setImageUrl]);
+  }, [toast, setImageUrl]);
 
   return (
     <Box padding={10} onDragOver={handleDragOver} onDrop={handleDrop} onPaste={handlePaste} minHeight="100vh">
@@ -161,7 +160,7 @@ const Main = () => {
                 marginLeft: "auto",
               }}
               alt=""
-              src={imageUrl}
+              src={imageUrl.url}
               ref={imgRef}
               onLoad={handleImageLoad}
               onError={handleImageError}
