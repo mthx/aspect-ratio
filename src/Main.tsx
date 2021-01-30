@@ -33,7 +33,6 @@ const Main = () => {
   const handleDataTransfer = useCallback(
     (event, dataTransferItemList: DataTransferItemList) => {
       const items: DataTransferItem[] = Array.from(dataTransferItemList);
-      console.log(items.map((i) => [i.type, i.kind]));
       const file = items.filter((x) => x.kind === "file")[0];
       const uri = items.find((x) => x.type === "text/uri-list");
       if (file) {
@@ -91,7 +90,6 @@ const Main = () => {
   }, [imgRef]);
 
   const handleImageError = useCallback(() => {
-    console.log(imageUrl);
     setImageUrl(undefined);
     toast({
       title: "Error loading image",
