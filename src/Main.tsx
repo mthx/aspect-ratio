@@ -118,10 +118,10 @@ const Main = () => {
       onPaste={handlePaste}
       minHeight="100vh"
     >
-      <Container maxWidth="70ch">
+      <Container maxWidth="xl">
         <Stack marginBottom={8} spacing={2}>
           <Flex alignItems="flex-end" marginBottom={2}>
-            <Image display="inline" height="9rem" src={icon} />
+            <Image display="inline" height={36} src={icon} />
             <Heading paddingLeft={2} paddingBottom={4}>
               Aspect ratio calculator
             </Heading>
@@ -161,13 +161,10 @@ const Main = () => {
         </Grid>
         <Box marginBottom={4}>
           {imageUrl && (
-            <img
-              style={{
-                display: "block",
-                maxWidth: "100%",
-                marginRight: "auto",
-                marginLeft: "auto",
-              }}
+            <Image
+              display="block"
+              mr="auto"
+              ml="auto"
               alt=""
               src={imageUrl}
               ref={imgRef}
@@ -239,7 +236,7 @@ const AspectInfo = ({ width, height }: AspectInfoProps) => {
   const approx = findApproximateAspectRatio(value);
   const common = findClosestCommonAspectRatio(value);
   return (
-    <Box fontSize={18} color="white" fontWeight="700">
+    <Box fontSize="lg" color="white" fontWeight="bold">
       <AspectInfoItem label="Exactly" value={value} />
       {approx.fraction.compareTo(value) !== 0 && (
         <AspectInfoItem
