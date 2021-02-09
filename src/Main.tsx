@@ -4,24 +4,21 @@ import {
   Box,
   Container,
   Flex,
-  FormControl,
-  FormHelperText,
-  FormLabel,
   Grid,
   Heading,
   Image,
-  Input,
   Kbd,
-  ListItem,
+  Link,
   Stack,
   Text,
-  UnorderedList,
   useToast,
 } from "@chakra-ui/react";
-import { findClosestCommonAspectRatio } from "./ratios";
-import { findApproximateAspectRatio, Fraction } from "./fraction";
 import icon from "./icon.svg";
-import { DefaultUrlSource, FileUrlSource, useUrlSourceState } from "./urlSource";
+import { FileUrlSource, useUrlSourceState } from "./urlSource";
+import ImageDropPasteTarget from "./ImageDropPasteTarget";
+import AspectInfo from "./AspectInfo";
+import NumericInput from "./NumericInput";
+import FileUploadButton from "./FileUploadButton";
 
 const Main = () => {
   const [width, setWidth] = useState("1600");
@@ -30,57 +27,17 @@ const Main = () => {
   const imgRef = useRef<HTMLImageElement | null>(null);
   const toast = useToast();
 
-  const handleDataTransfer = useCallback(
-    (event, dataTransferItemList: DataTransferItemList) => {
-      const items: DataTransferItem[] = Array.from(dataTransferItemList);
-      const file = items.find((x) => x.kind === "file");
-      const uri = items.find((x) => x.type === "text/uri-list");
-      if (file) {
-        event.preventDefault();
-        setImageUrl(new FileUrlSource(file.getAsFile()!));
-        return true;
+  const handleSelectFile = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const files = event.target.files;
+      if (files) {
+        const file = files.item(0);
+        if (file) {
+          setImageUrl(new FileUrlSource(file));
+        }
       }
-      if (uri) {
-        event.preventDefault();
-        uri.getAsString(url => setImageUrl(new DefaultUrlSource(url)));
-        return true;
-      }
-      return false;
     },
     [setImageUrl]
-  );
-
-  const handlePaste = useCallback(
-    (event: React.ClipboardEvent<HTMLDivElement>) => {
-      const items: DataTransferItemList = event.clipboardData.items;
-      handleDataTransfer(event, items);
-    },
-    [handleDataTransfer]
-  );
-
-  const handleDrop = useCallback(
-    (event: React.DragEvent<HTMLDivElement>) => {
-      // Always preventDefault to avoid opening opening tabs if we don't match.
-      event.preventDefault();
-      if (!handleDataTransfer(event, event.dataTransfer.items)) {
-        toast({
-          title: "Unrecognised item dropped on page",
-          description:
-            "Drop an image URL, for example from another browser tab.",
-          status: "warning",
-          isClosable: true,
-        });
-      }
-    },
-    [toast, handleDataTransfer]
-  );
-
-  const handleDragOver = useCallback(
-    (event: React.DragEvent<HTMLDivElement>) => {
-      event.preventDefault();
-      event.dataTransfer.dropEffect = "copy";
-    },
-    []
   );
 
   const handleImageLoad = useCallback(() => {
@@ -110,158 +67,93 @@ const Main = () => {
   }, [toast, setImageUrl]);
 
   return (
-    <Box
-      padding={[1, 4, 6, 10]}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
-      onPaste={handlePaste}
-      minHeight="100vh"
-      color="black"
-    >
-      <Container maxWidth="xl">
-        <Stack marginBottom={8} spacing={2}>
-          <Flex alignItems="flex-end" marginBottom={2}>
-            <Image display="inline" width={36} height={36} src={icon} />
-            <Heading paddingLeft={2} paddingBottom={4}>
-              Aspect ratio calculator
-            </Heading>
-          </Flex>
-          <Text>
-            Find the aspect ratio from an image. Shows approximate aspect ratios
-            where things aren't quite right and the closest ratio commonly used
-            on the web.
-          </Text>
-          <UnorderedList spacing={1} listStylePosition="inside">
-            <ListItem>
-              Drop an image onto the page. Works great from other apps or
-              browser windows.
-            </ListItem>
-            <ListItem>
-              Use <Kbd>{isMac() ? "Cmd" : "Ctrl"}</Kbd> + <Kbd>V</Kbd> to paste
-              an image or URL.
-            </ListItem>
-            <ListItem>Type in the dimensions below.</ListItem>
-          </UnorderedList>
-        </Stack>
-        <Grid templateColumns="repeat(2, 1fr)" gap={4} marginBottom={4}>
-          <NumericInput
-            id="width"
-            label="Width"
-            value={width}
-            onChange={(v) => {
-              setImageUrl(undefined);
-              setWidth(v);
-            }}
-          />
-          <NumericInput
-            id="height"
-            label="Height"
-            value={height}
-            onChange={(v) => {
-              setImageUrl(undefined);
-              setHeight(v);
-            }}
-          />
-        </Grid>
-        <Box marginBottom={4}>
-          {imageUrl && (
-            <Image
-              display="block"
-              mr="auto"
-              ml="auto"
-              alt=""
-              src={imageUrl.url}
-              ref={imgRef}
-              onLoad={handleImageLoad}
-              onError={handleImageError}
-            />
-          )}
-        </Box>
-        {isValid(width) && isValid(height) && (
-          <AspectRatio
-            maxW="100%"
-            ratio={parseInt(width, 10) / parseInt(height, 10)}
-            marginBottom={4}
-          >
-            <Box bg="grey" justifyContent="center" alignItems="center">
-              <AspectInfo
-                width={parseInt(width, 10)}
-                height={parseInt(height, 10)}
-              />
+    <ImageDropPasteTarget onNewImageUrlSource={setImageUrl}>
+      <Stack minHeight="100vh" color="black">
+        <Container padding={[1, 4, 6, 10]} maxWidth="xl" flexGrow={1}>
+          <Stack marginBottom={8} spacing={2}>
+            <Flex alignItems="flex-end" marginBottom={2}>
+              <Image display="inline" width={36} height={36} src={icon} />
+              <Heading paddingLeft={2} paddingBottom={4}>
+                Aspect ratio calculator
+              </Heading>
+            </Flex>
+            <Text>
+              Find the aspect ratio from an image. Shows approximate aspect
+              ratios where things aren't quite right and the closest ratio
+              commonly used on the web.
+            </Text>
+            <Box paddingBottom={2} display="flex" justifyContent="center">
+              <FileUploadButton onChange={handleSelectFile} />
             </Box>
-          </AspectRatio>
-        )}
-      </Container>
-    </Box>
+            <Text>
+              Or use <Kbd>{isMac() ? "Cmd" : "Ctrl"}</Kbd> + <Kbd>V</Kbd> to
+              paste an image or URL, drag and drop an image onto the page, or
+              type in dimensions.
+            </Text>
+          </Stack>
+          <Grid templateColumns="repeat(2, 1fr)" gap={4} marginBottom={4}>
+            <NumericInput
+              id="width"
+              label="Width"
+              value={width}
+              onChange={(v) => {
+                setImageUrl(undefined);
+                setWidth(v);
+              }}
+            />
+            <NumericInput
+              id="height"
+              label="Height"
+              value={height}
+              onChange={(v) => {
+                setImageUrl(undefined);
+                setHeight(v);
+              }}
+            />
+          </Grid>
+          <Box marginBottom={4}>
+            {imageUrl && (
+              <Image
+                display="block"
+                mr="auto"
+                ml="auto"
+                alt=""
+                src={imageUrl.url}
+                ref={imgRef}
+                onLoad={handleImageLoad}
+                onError={handleImageError}
+              />
+            )}
+          </Box>
+          {isValid(width) && isValid(height) && (
+            <AspectRatio
+              maxW="100%"
+              ratio={parseInt(width, 10) / parseInt(height, 10)}
+              marginBottom={4}
+            >
+              <Box bg="grey" justifyContent="center" alignItems="center">
+                <AspectInfo
+                  width={parseInt(width, 10)}
+                  height={parseInt(height, 10)}
+                />
+              </Box>
+            </AspectRatio>
+          )}
+        </Container>
+        <Box as="footer" backgroundColor="whitesmoke">
+          <Text size="xs" textAlign="center" paddingTop={2} paddingBottom={2}>
+            <Link href="http://github.com/mthx/aspect-ratio/">
+              Source code on GitHub.
+            </Link>
+          </Text>
+        </Box>
+      </Stack>
+    </ImageDropPasteTarget>
   );
 };
-
-interface NumericInputProps {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}
-
-const NumericInput = ({ id, label, value, onChange }: NumericInputProps) => (
-  <FormControl id={id}>
-    <FormLabel>{label}</FormLabel>
-    <Input
-      type="number"
-      value={value}
-      onChange={(v) => onChange(v.currentTarget.value)}
-    />
-    <FormHelperText>
-      The {label.toLowerCase()} of your image in pixels
-    </FormHelperText>
-  </FormControl>
-);
-
-interface AspectInfoItemProps {
-  label: string;
-  value: Fraction;
-  error?: number;
-}
-
-const AspectInfoItem = ({ label, value, error }: AspectInfoItemProps) => (
-  <Box>
-    {label} <span>{value.toString().replace("/", ":")}</span>
-    {error && <span> ({(error * 100).toFixed(2)}% error)</span>}
-  </Box>
-);
-
-interface AspectInfoProps {
-  width: number;
-  height: number;
-}
-
-const AspectInfo = ({ width, height }: AspectInfoProps) => {
-  const value = new Fraction(width, height);
-  const approx = findApproximateAspectRatio(value);
-  const common = findClosestCommonAspectRatio(value);
-  return (
-    <Box fontSize="lg" color="white" fontWeight="bold">
-      <AspectInfoItem label="Exactly" value={value} />
-      {approx.fraction.compareTo(value) !== 0 && (
-        <AspectInfoItem
-          label="Approx."
-          value={approx.fraction}
-          error={approx.error}
-        />
-      )}
-      {common.fraction.compareTo(value) !== 0 && (
-        <AspectInfoItem
-          label="Closest common is "
-          value={common.fraction}
-          error={common.error}
-        />
-      )}
-    </Box>
-  );
-};
-
-const isValid = (n: string) => /^\d+$/.test(n.trim());
 
 const isMac = () => navigator.platform.indexOf("Mac") !== -1;
+
+const isValid = (n: string) => /^\d+$/.test(n.trim());
 
 export default Main;
